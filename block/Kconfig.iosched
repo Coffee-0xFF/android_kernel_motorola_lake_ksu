@@ -71,6 +71,7 @@ config BFQ_GROUP_IOSCHED
 
 config IOSCHED_MAPLE
 	tristate "Maple I/O scheduler"
+	depends on FB
 	default y
 
 
