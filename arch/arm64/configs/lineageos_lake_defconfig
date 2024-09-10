@@ -776,3 +776,7 @@ CONFIG_QMI_ENCDEC=y
 # KernelSU
 CONFIG_KSU=y
 
+# AdrenoIdler and dependence
+CONFIG_ADRENO_IDLER=y
+CONFIG_STATE_NOTIFIER=y
+
