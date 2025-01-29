@@ -1,4 +1,4 @@
-DEFCONFIGSRC			:= kernel/arch/$(KERNEL_ARCH)/configs
+DEFCONFIGSRC			:= kernel/arch/arm/configs
 LJAPDEFCONFIGSRC		:= ${DEFCONFIGSRC}/ext_config
 PRODUCT_SPECIFIC_DEFCONFIGS	:= $(DEFCONFIGSRC)/$(KERNEL_DEFCONFIG)
 TARGET_DEFCONFIG		:= $(KERNEL_OUT)/mapphone_defconfig
