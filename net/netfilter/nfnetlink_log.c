@@ -18,7 +18,6 @@
 #include <linux/module.h>
 #include <linux/skbuff.h>
 #include <linux/if_arp.h>
-#include <linux/in.h>
 #include <linux/init.h>
 #include <linux/ip.h>
 #include <linux/ipv6.h>
@@ -399,7 +398,6 @@ __build_packet_message(struct nfnl_log_net *log,
 			struct nfulnl_instance *inst,
 			const struct sk_buff *skb,
 			unsigned int data_len,
-			unsigned int data_offset,
 			u_int8_t pf,
 			unsigned int hooknum,
 			const struct net_device *indev,
@@ -595,7 +593,7 @@ __build_packet_message(struct nfnl_log_net *log,
 		nla->nla_type = NFULA_PAYLOAD;
 		nla->nla_len = size;
 
-		if (skb_copy_bits(skb, data_offset, nla_data(nla), data_len))
+		if (skb_copy_bits(skb, 0, nla_data(nla), data_len))
 			BUG();
 	}
 
@@ -618,48 +616,7 @@ static struct nf_loginfo default_loginfo = {
 	},
 };
 
-static void
-get_data_len_and_offset(const struct sk_buff *skb,
-			const unsigned int layer,
-			unsigned int *data_len,
-			unsigned int *data_offset)
-{
-	unsigned int ip_hdr_len = 0;
-	unsigned int trans_hdr_len = 0;
-
-	ip_hdr_len = skb_network_header_len(skb);
-	/* only care TCP and UDP */
-	if (skb->sk->sk_protocol == IPPROTO_TCP)
-		trans_hdr_len = tcp_hdr(skb)->doff << 2;
-	else if (skb->sk->sk_protocol == IPPROTO_UDP)
-		trans_hdr_len = sizeof(struct udphdr);
-
-	switch (layer) {
-	case NF_LOG_ALL: /* default */
-		break;
-	case NF_LOG_NETWORK_ONLY:
-		*data_len = ip_hdr_len;
-		break;
-	case NF_LOG_NETWORK_TRANSPORT:
-		*data_len = ip_hdr_len + trans_hdr_len;
-		break;
-	case NF_LOG_TRANSPORT_ONLY:
-		*data_offset = ip_hdr_len;
-		*data_len = trans_hdr_len;
-		break;
-	case NF_LOG_TRANSPORT_APP:
-		*data_offset = ip_hdr_len;
-		*data_len -= ip_hdr_len;
-		break;
-	case NF_LOG_APP_ONLY:
-		*data_offset = ip_hdr_len + trans_hdr_len;
-		*data_len -= ip_hdr_len + trans_hdr_len;
-		break;
-	default:
-		break;
-	}
-}
-
+/* log handler for internal netfilter logging api */
 void
 nfulnl_log_packet(struct net *net,
 		  u_int8_t pf,
@@ -670,30 +627,12 @@ nfulnl_log_packet(struct net *net,
 		  const struct nf_loginfo *li_user,
 		  const char *prefix)
 {
-	__nfulnl_log_packet(net, pf, hooknum, skb, in, out,
-			    li_user, prefix, NF_LOG_ALL);
-}
-EXPORT_SYMBOL_GPL(nfulnl_log_packet);
-
-/* log handler for internal netfilter logging api */
-void
-__nfulnl_log_packet(struct net *net,
-		    u_int8_t pf,
-		    unsigned int hooknum,
-		    const struct sk_buff *skb,
-		    const struct net_device *in,
-		    const struct net_device *out,
-		    const struct nf_loginfo *li_user,
-		    const char *prefix,
-		    unsigned int layer)
-{
 	size_t size;
 	unsigned int data_len;
 	struct nfulnl_instance *inst;
 	const struct nf_loginfo *li;
 	unsigned int qthreshold;
 	unsigned int plen;
-	unsigned int data_offset = 0;
 	struct nfnl_log_net *log = nfnl_log_pernet(net);
 	const struct nfnl_ct_hook *nfnl_ct = NULL;
 	struct nf_conn *ct = NULL;
@@ -766,10 +705,9 @@ __nfulnl_log_packet(struct net *net,
 		break;
 
 	case NFULNL_COPY_PACKET:
-		data_len = skb->len;
-		get_data_len_and_offset(skb, layer, &data_len, &data_offset);
-
-		if (inst->copy_range < data_len)
+		if (inst->copy_range > skb->len)
+			data_len = skb->len;
+		else
 			data_len = inst->copy_range;
 
 		size += nla_total_size(data_len);
@@ -795,9 +733,9 @@ __nfulnl_log_packet(struct net *net,
 
 	inst->qlen++;
 
-	__build_packet_message(log, inst, skb, data_len, data_offset, pf,
-			       hooknum, in, out, prefix, plen,
-			       nfnl_ct, ct, ctinfo);
+	__build_packet_message(log, inst, skb, data_len, pf,
+				hooknum, in, out, prefix, plen,
+				nfnl_ct, ct, ctinfo);
 
 	if (inst->qlen >= qthreshold)
 		__nfulnl_flush(inst);
@@ -818,7 +756,7 @@ alloc_failure:
 	/* FIXME: statistics */
 	goto unlock_and_release;
 }
-EXPORT_SYMBOL_GPL(__nfulnl_log_packet);
+EXPORT_SYMBOL_GPL(nfulnl_log_packet);
 
 static int
 nfulnl_rcv_nl_event(struct notifier_block *this,
