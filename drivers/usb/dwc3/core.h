@@ -43,6 +43,7 @@
 #define DWC3_EP0_BOUNCE_SIZE	512
 #define DWC3_ENDPOINTS_NUM	32
 #define DWC3_XHCI_RESOURCES_NUM	2
+#define MAX_ERROR_RECOVERY_TRIES 3
 
 #define DWC3_SCRATCHBUF_SIZE	4096	/* each buffer is assumed to be 4KiB */
 #define DWC3_EVENT_BUFFERS_SIZE	4096
@@ -219,6 +220,7 @@
 #define DWC3_GUSB3PIPECTL_U2SSINP3OK	(1 << 29)
 #define DWC3_GUSB3PIPECTL_UX_EXIT_IN_PX	(1 << 27)
 #define DWC3_GUSB3PIPECTL_REQP1P2P3	(1 << 24)
+#define DWC3_GUSB3PIPECTL_DISRXDETU3	(1 << 22)
 #define DWC3_GUSB3PIPECTL_DEP1P2P3(n)	((n) << 19)
 #define DWC3_GUSB3PIPECTL_DEP1P2P3_MASK	DWC3_GUSB3PIPECTL_DEP1P2P3(7)
 #define DWC3_GUSB3PIPECTL_DEP1P2P3_EN	DWC3_GUSB3PIPECTL_DEP1P2P3(1)
@@ -910,6 +912,7 @@ struct dwc3 {
 	u32			u1u2;
 	u32			maximum_speed;
 	u32			max_hw_supp_speed;
+	int			retries_on_error;
 
 	/*
 	 * All 3.1 IP version constants are greater than the 3.0 IP

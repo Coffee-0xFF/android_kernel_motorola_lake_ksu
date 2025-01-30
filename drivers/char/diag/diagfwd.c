@@ -48,7 +48,7 @@
 #define STM_RSP_SUPPORTED_INDEX		7
 #define STM_RSP_STATUS_INDEX		8
 #define STM_RSP_NUM_BYTES		9
-#define RETRY_MAX_COUNT		1000
+#define RETRY_MAX_COUNT			1000
 
 struct diag_md_hdlc_reset_work {
 	int pid;
@@ -273,11 +273,11 @@ static void pack_rsp_and_send(unsigned char *buf, int len,
 				diag_md_session_get_peripheral(APPS_DATA);
 
 	if (info && info->peripheral_mask) {
-		for (i = 0; i < NUM_MD_SESSIONS; i++) {
+		for (i = 0; i <= NUM_PERIPHERALS; i++) {
 			if (info->peripheral_mask & (1 << i))
 				break;
 		}
-		rsp_ctxt = SET_BUF_CTXT(i, TYPE_CMD, TYPE_CMD);
+		rsp_ctxt = SET_BUF_CTXT(i, TYPE_CMD, 1);
 	} else
 		rsp_ctxt = driver->rsp_buf_ctxt;
 	mutex_unlock(&driver->md_session_lock);
@@ -361,11 +361,11 @@ static void encode_rsp_and_send(unsigned char *buf, int len,
 				diag_md_session_get_peripheral(APPS_DATA);
 
 	if (info && info->peripheral_mask) {
-		for (i = 0; i < NUM_MD_SESSIONS; i++) {
+		for (i = 0; i <= NUM_PERIPHERALS; i++) {
 			if (info->peripheral_mask & (1 << i))
 				break;
 		}
-		rsp_ctxt = SET_BUF_CTXT(i, TYPE_CMD, TYPE_CMD);
+		rsp_ctxt = SET_BUF_CTXT(i, TYPE_CMD, 1);
 	} else
 		rsp_ctxt = driver->rsp_buf_ctxt;
 	mutex_unlock(&driver->md_session_lock);
@@ -1766,18 +1766,11 @@ static int diagfwd_mux_write_done(unsigned char *buf, int len, int buf_ctxt,
 		}
 		break;
 	case TYPE_CMD:
-		if (peripheral >= 0 && peripheral < NUM_PERIPHERALS &&
-			num != TYPE_CMD) {
-			DIAG_LOG(DIAG_DEBUG_PERIPHERALS,
-			"Marking buffer as free after write done p: %d, t: %d, buf_num: %d\n",
-			peripheral, type, num);
+		if (peripheral >= 0 && peripheral < NUM_PERIPHERALS) {
 			diagfwd_write_done(peripheral, type, num);
-		} else if (peripheral == APPS_DATA ||
-			(peripheral >= 0 && peripheral < NUM_PERIPHERALS &&
-			num == TYPE_CMD)) {
-			DIAG_LOG(DIAG_DEBUG_PERIPHERALS,
-			"Marking APPS response buffer free after write done for p: %d, t: %d, buf_num: %d\n",
-			peripheral, type, num);
+		}
+		if (peripheral == APPS_DATA ||
+				ctxt == DIAG_MEMORY_DEVICE_MODE) {
 			spin_lock_irqsave(&driver->rsp_buf_busy_lock, flags);
 			driver->rsp_buf_busy = 0;
 			driver->encoded_rsp_len = 0;

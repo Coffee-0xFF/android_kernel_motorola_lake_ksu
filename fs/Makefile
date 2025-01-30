@@ -46,6 +46,7 @@ obj-$(CONFIG_FS_MBCACHE)	+= mbcache.o mbcache2.o
 obj-$(CONFIG_FS_POSIX_ACL)	+= posix_acl.o
 obj-$(CONFIG_NFS_COMMON)	+= nfs_common/
 obj-$(CONFIG_COREDUMP)		+= coredump.o
+obj-$(CONFIG_COREDUMP_GZ)	+= coredump_gz.o
 obj-$(CONFIG_SYSCTL)		+= drop_caches.o
 
 obj-$(CONFIG_FHANDLE)		+= fhandle.o
@@ -84,6 +85,7 @@ obj-$(CONFIG_HFSPLUS_FS)	+= hfsplus/ # Before hfs to find wrapped HFS+
 obj-$(CONFIG_HFS_FS)		+= hfs/
 obj-$(CONFIG_ECRYPT_FS)		+= ecryptfs/
 obj-$(CONFIG_SDCARD_FS)		+= sdcardfs/
+obj-$(CONFIG_ESD_FS)		+= esdfs/
 obj-$(CONFIG_VXFS_FS)		+= freevxfs/
 obj-$(CONFIG_NFS_FS)		+= nfs/
 obj-$(CONFIG_EXPORTFS)		+= exportfs/
