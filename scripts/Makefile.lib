@@ -280,6 +280,24 @@ ifeq ($(KBUILD_ENABLE_EXTRA_GCC_CHECKS),)
 DTC_FLAGS += -Wno-unit_address_vs_reg
 endif
 
+# Disable noisy checks by default with external dtc
+ifneq ($(DTC_EXT),)
+	ifeq ($(KBUILD_ENABLE_EXTRA_GCC_CHECKS),)
+		DTC_FLAGS +=	-Wno-alias_paths 			\
+				-Wno-avoid_default_addr_size 		\
+				-Wno-avoid_unnecessary_addr_size 	\
+				-Wno-gpios_property 			\
+				-Wno-graph_child_address 		\
+				-Wno-graph_port 			\
+				-Wno-interrupts_property 		\
+				-Wno-pci_device_reg 			\
+				-Wno-reg_format 			\
+				-Wno-unique_unit_address 		\
+				-Wno-unit_address_format 		\
+				-Wno-unit_address_vs_reg
+	endif
+endif
+
 # Generate an assembly file to wrap the output of the device tree compiler
 quiet_cmd_dt_S_dtb= DTB     $@
 cmd_dt_S_dtb=						\
