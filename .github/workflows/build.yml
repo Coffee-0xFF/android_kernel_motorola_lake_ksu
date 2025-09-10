@@ -22,4 +22,5 @@ jobs:
           anykernel3-url: https://github.com/Coffee-0xFF/AnyKernel3.git
           anykernel3-branch: Lake
           extra-cmd: DTC_EXT=dtc LLVM=1 LLVM_IAS=1 YACC=bison LD=ld.lld AR=llvm-ar CFLAGS="-fuse-ld=lld"
+          anykernel3-in_img_path: out/arch/arm64/boot/Image
 
