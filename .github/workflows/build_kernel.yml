@@ -1,0 +1,25 @@
+name: Build
+
+on: [push]
+
+jobs:
+  build-kernel:
+    name: Build Kernel
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Build
+        uses: Coffee-0xFF/kernel_build_action@testing
+        with:
+          kernel-url: https://github.com/${{ github.repository }}.git
+          kernel-branch: ${{ github.ref_name }}
+          depth: 1
+          config: lineageos_lake_defconfig
+          arch: arm64
+          aosp-gcc: true
+          aosp-clang: false
+          other-clang-url: https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r530567.tar.gz
+          anykernel3: true
+          anykernel3-url: https://github.com/Coffee-0xFF/AnyKernel3.git
+          anykernel3-branch: Lake
+          extra-cmd: DTC_EXT=dtc LLVM=1 LLVM_IAS=1 YACC=bison LD=ld.lld AR=llvm-ar CFLAGS="-fuse-ld=lld"
+          anykernel3-in_img_path: out/arch/arm64/boot/Image
