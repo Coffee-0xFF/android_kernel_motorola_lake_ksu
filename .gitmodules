@@ -1,0 +1,4 @@
+[submodule "KernelSU"]
+	path = KernelSU
+	url = https://github.com/Coffee-0xFF/KernelSU.git
+	branch = bugfixes-0.9.5
